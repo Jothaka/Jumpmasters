@@ -14,6 +14,8 @@ public class AimBehaviour : IPlayerBehaviour
     private IPlayerBehaviour nextBehaviour;
 
     private float currentPowerLevel;
+    private float currentPowerDirection;
+
     private float currentAimAngle;
 
     public AimBehaviour(Transform targetOrigin, LineRenderer targetIndicator)
@@ -33,6 +35,7 @@ public class AimBehaviour : IPlayerBehaviour
         if (input.IsInputPressed())
         {
             UpdateAimAngle(input);
+            UpdatePowerLevel();
         }
         else if (targetIndicator.enabled)
         {
@@ -42,6 +45,18 @@ public class AimBehaviour : IPlayerBehaviour
         }
 
         return this;
+    }
+
+    private void UpdatePowerLevel()
+    {
+        if (currentPowerLevel <= 0)
+            currentPowerDirection = 1;
+        else if (currentPowerLevel >= 1)
+            currentPowerDirection = -1;
+
+        currentPowerLevel += Time.deltaTime * currentPowerDirection;
+
+        PowerLevelChanged?.Invoke(currentPowerLevel);
     }
 
     private void UpdateAimAngle(IInputComponent input)

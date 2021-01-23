@@ -1,11 +1,11 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class UIController : MonoBehaviour
 {
     [SerializeField]
     private AngleView angleView;
-
+    [SerializeField]
+    private PowerView powerView;
 
     public void OnAimAngleChanged(float angle)
     {
@@ -13,8 +13,15 @@ public class UIController : MonoBehaviour
         angleView.SetDisplayedAngle(angle);
     }
 
-    internal void OnAimingFinished(float angle, float powerLvl)
+    public void OnPowerLevelChanged(float powerLevel)
+    {
+        powerView.Show();
+        powerView.SetPowerLevel(powerLevel);
+    }
+
+    public void OnAimingFinished(float angle, float powerLvl)
     {
         angleView.Hide();
+        powerView.Hide();
     }
 }

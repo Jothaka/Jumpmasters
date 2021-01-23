@@ -51,6 +51,7 @@ public class GameController : MonoBehaviour
     {
         AimBehaviour aimBehaviour = new AimBehaviour(targetIndicatorOrigin, targetIndicator);
         aimBehaviour.AimAngleChanged += uiController.OnAimAngleChanged;
+        aimBehaviour.PowerLevelChanged += uiController.OnPowerLevelChanged;
         aimBehaviour.AimingFinished += uiController.OnAimingFinished;
         return aimBehaviour;
     }
