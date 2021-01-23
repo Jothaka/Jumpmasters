@@ -10,33 +10,43 @@ public class CameraController : MonoBehaviour
     private CameraView cameraView;
 
     [SerializeField]
-    private float CameraMoveDuration;
+    private float CameraDefaultMoveDuration;
 
-    public void StartCameraPan()
+
+    public void StartCameraPan(float duration = 0)
     {
-        MoveToEnemy();
+        MoveToEnemy(duration);
+        CameraMovedToEnemy += MoveToPlayer;
     }
 
-    private void MoveToEnemy()
+    private void MoveToEnemy(float duration = 0)
     {
-        var enemyTween = cameraView.MoveToEnemyRestingPoint(CameraMoveDuration);
+        if (duration == 0)
+            duration = CameraDefaultMoveDuration;
+        var enemyTween = cameraView.MoveToEnemyRestingPoint(duration);
         enemyTween.onComplete += OnEnemyMoveTweenComplete;
     }
 
     private void MoveToPlayer()
     {
-        var playerTween = cameraView.MoveToPlayerRestingPoint(CameraMoveDuration);
+        MoveToPlayer(CameraDefaultMoveDuration);
+    }
+
+    private void MoveToPlayer(float duration)
+    {
+        var playerTween = cameraView.MoveToPlayerRestingPoint(duration);
         playerTween.onComplete += OnPlayerMoveTweenComplete;
     }
 
     private void OnEnemyMoveTweenComplete()
     {
         CameraMovedToEnemy?.Invoke();
-        MoveToPlayer();
+        CameraMovedToEnemy = null;
     }
 
     private void OnPlayerMoveTweenComplete()
     {
         CameraMovedToPlayer?.Invoke();
+        CameraMovedToPlayer = null;
     }
 }

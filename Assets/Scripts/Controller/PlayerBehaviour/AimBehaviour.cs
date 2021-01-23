@@ -25,11 +25,6 @@ public class AimBehaviour : IPlayerBehaviour
         nextBehaviour = this;
     }
 
-    public void SetNextBehaviour(IPlayerBehaviour playerbehaviour)
-    {
-        nextBehaviour = playerbehaviour;
-    }
-
     public IPlayerBehaviour UpdateBehaviour(IInputComponent input)
     {
         if (input.IsInputPressed())
@@ -47,16 +42,14 @@ public class AimBehaviour : IPlayerBehaviour
         return this;
     }
 
-    private void UpdatePowerLevel()
+    public void SetNextBehaviour(IPlayerBehaviour playerbehaviour)
     {
-        if (currentPowerLevel <= 0)
-            currentPowerDirection = 1;
-        else if (currentPowerLevel >= 1)
-            currentPowerDirection = -1;
+        nextBehaviour = playerbehaviour;
+    }
 
-        currentPowerLevel += Time.deltaTime * currentPowerDirection;
-
-        PowerLevelChanged?.Invoke(currentPowerLevel);
+    public IPlayerBehaviour GetNextBehaviour()
+    {
+        return nextBehaviour;
     }
 
     private void UpdateAimAngle(IInputComponent input)
@@ -79,5 +72,17 @@ public class AimBehaviour : IPlayerBehaviour
         targetIndicator.enabled = true;
         targetIndicator.positionCount = 2;
         targetIndicator.SetPositions(linePositions);
+    }
+
+    private void UpdatePowerLevel()
+    {
+        if (currentPowerLevel <= 0)
+            currentPowerDirection = 1;
+        else if (currentPowerLevel >= 1)
+            currentPowerDirection = -1;
+
+        currentPowerLevel += Time.deltaTime * currentPowerDirection;
+
+        PowerLevelChanged?.Invoke(currentPowerLevel);
     }
 }

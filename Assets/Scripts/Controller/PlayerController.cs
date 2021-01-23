@@ -18,4 +18,10 @@
     {
         currentbehaviour = newBehaviour;
     }
+
+    //for debug purposes
+    public void ForceNextBehaviour()
+    {
+        currentbehaviour = currentbehaviour.GetNextBehaviour();
+    }
 }
