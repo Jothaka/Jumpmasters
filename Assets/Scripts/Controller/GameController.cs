@@ -5,6 +5,8 @@ public class GameController : MonoBehaviour
 {
     [SerializeField]
     private CameraController cameraController;
+    [SerializeField]
+    private UIController uiController;
 
     [SerializeField]
     private Transform targetIndicatorOrigin;
@@ -29,17 +31,27 @@ public class GameController : MonoBehaviour
 
     private void CreatePlayer()
     {
+        IPlayerBehaviour startBehaviour = CreatePlayerBehaviours();
+
         switch (Application.platform)
         {
             case RuntimePlatform.WindowsPlayer:
             case RuntimePlatform.WindowsEditor:
-                player = new PlayerController(targetIndicatorOrigin, new MouseInputComponent(), targetIndicator);
+                player = new PlayerController(new MouseInputComponent(), startBehaviour);
                 break;
             case RuntimePlatform.Android:
-                player = new PlayerController(targetIndicatorOrigin, new TouchInputComponent(), targetIndicator);
+                player = new PlayerController(new TouchInputComponent(), startBehaviour);
                 break;
             default:
                 throw new NotImplementedException(Application.platform.ToString());
         }
+    }
+
+    private IPlayerBehaviour CreatePlayerBehaviours()
+    {
+        AimBehaviour aimBehaviour = new AimBehaviour(targetIndicatorOrigin, targetIndicator);
+        aimBehaviour.AimAngleChanged += uiController.OnAimAngleChanged;
+        aimBehaviour.AimingFinished += uiController.OnAimingFinished;
+        return aimBehaviour;
     }
 }
