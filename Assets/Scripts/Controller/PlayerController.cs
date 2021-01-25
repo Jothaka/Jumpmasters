@@ -1,12 +1,16 @@
 ﻿public class PlayerController
 {
-    private IInputComponent input;
+    private readonly IInputComponent input;
     private IPlayerBehaviour currentbehaviour;
+    private EntityModel playerModel;
+    private int currentHealth;
 
-    public PlayerController(IInputComponent inputComponent, IPlayerBehaviour startingBehaviour)
+    public PlayerController(IInputComponent inputComponent, IPlayerBehaviour startingBehaviour, EntityModel entityModel)
     {
         input = inputComponent;
         currentbehaviour = startingBehaviour;
+        playerModel = entityModel;
+        currentHealth = playerModel.MaxHealth;
     }
 
     public void Update()
@@ -23,5 +27,12 @@
     public void ForceNextBehaviour()
     {
         currentbehaviour = currentbehaviour.GetNextBehaviour();
+    }
+
+    public void OnHit()
+    {
+        currentHealth -= playerModel.DamageReceived;
+        float healthPercentage = (float)currentHealth / (float)playerModel.MaxHealth;
+        playerModel.EntityHealthbar.SetTargetFillAmount(healthPercentage);
     }
 }

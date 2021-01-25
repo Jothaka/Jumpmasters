@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-public class PlayerView : MonoBehaviour
+public class EntityView : MonoBehaviour
 {
     private static readonly int AscendingJumpBoolHash = Animator.StringToHash("AscendingJump");
     private static readonly int GroundedBoolHash = Animator.StringToHash("Grounded");
@@ -9,15 +9,7 @@ public class PlayerView : MonoBehaviour
     public event Action<Collision2D> CollisionEnter;
 
     [SerializeField]
-    private Animator playerAnimator;
-
-    public Rigidbody2D PlayerRigidBody { get; private set; }
-
-
-    private void Start()
-    {
-        PlayerRigidBody = gameObject.GetComponent<Rigidbody2D>();
-    }
+    private Animator entityAnimator;
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -26,11 +18,11 @@ public class PlayerView : MonoBehaviour
 
     public void SetAnimatorAscendingParameter(bool parameterValue)
     {
-        playerAnimator.SetBool(AscendingJumpBoolHash, parameterValue);
+        entityAnimator.SetBool(AscendingJumpBoolHash, parameterValue);
     }
 
     public void SetAnimatorGroundedParameter(bool parameterValue)
     {
-        playerAnimator.SetBool(GroundedBoolHash, parameterValue);
+        entityAnimator.SetBool(GroundedBoolHash, parameterValue);
     }
 }

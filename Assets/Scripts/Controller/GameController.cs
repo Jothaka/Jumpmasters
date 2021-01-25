@@ -14,13 +14,17 @@ public class GameController : MonoBehaviour
     [SerializeField]
     private Transform targetIndicatorOrigin;
     [SerializeField]
-    private PlayerView playerView;
+    private EntityModel playerModel;
     [SerializeField]
     private LineRenderer targetIndicator;
     [SerializeField]
     private Transform playerStartingPosition;
     [SerializeField]
     private Transform enemyStartingPosition;
+
+    [Header("Enemy references")]
+    [SerializeField]
+    private EntityModel enemyModel;
 
     [Header("Settings")]
     [SerializeField]
@@ -29,11 +33,13 @@ public class GameController : MonoBehaviour
     private float jumpMinforce;
 
     private PlayerController player;
+    private EnemyController enemy;
 
     void Start()
     {
         cameraController.StartCameraPan();
         cameraController.CameraMovedToPlayer += CreatePlayer;
+        enemy = new EnemyController(enemyModel);
     }
 
     void Update()
@@ -44,7 +50,7 @@ public class GameController : MonoBehaviour
 
     public void Debug_ResetPlayer()
     {
-        var playerTransform = playerView.transform;
+        var playerTransform = playerModel.transform;
         playerTransform.position = playerStartingPosition.position;
         playerTransform.rotation = playerStartingPosition.rotation;
         player.ForceNextBehaviour();
@@ -60,10 +66,10 @@ public class GameController : MonoBehaviour
         {
             case RuntimePlatform.WindowsPlayer:
             case RuntimePlatform.WindowsEditor:
-                player = new PlayerController(new MouseInputComponent(), startBehaviour);
+                player = new PlayerController(new MouseInputComponent(), startBehaviour , playerModel);
                 break;
             case RuntimePlatform.Android:
-                player = new PlayerController(new TouchInputComponent(), startBehaviour);
+                player = new PlayerController(new TouchInputComponent(), startBehaviour, playerModel);
                 break;
             default:
                 throw new NotImplementedException(Application.platform.ToString());
@@ -77,11 +83,13 @@ public class GameController : MonoBehaviour
         aimBehaviour.PowerLevelChanged += uiController.OnPowerLevelChanged;
         aimBehaviour.AimingFinished += uiController.OnAimingFinished;
 
-        JumpBehaviour jumpBehaviour = new JumpBehaviour(playerView, jumpMaxforce, jumpMinforce);
+        JumpBehaviour jumpBehaviour = new JumpBehaviour(playerModel, jumpMaxforce, jumpMinforce);
         aimBehaviour.AimingFinished += jumpBehaviour.OnAimingFinished;
         aimBehaviour.SetNextBehaviour(jumpBehaviour);
         jumpBehaviour.SetNextBehaviour(aimBehaviour);
         jumpBehaviour.Jumped += OnJumped;
+        jumpBehaviour.HitEnemy += enemy.OnHit;
+
         return aimBehaviour;
     }
 
@@ -95,7 +103,7 @@ public class GameController : MonoBehaviour
         //need to wait for the next physics frame to get the correct velocity
         yield return new WaitForFixedUpdate();
 
-        var velocity = playerView.PlayerRigidBody.velocity;
+        var velocity = playerModel.RigidBody.velocity;
         var distance = enemyStartingPosition.position.x - playerStartingPosition.position.x;
         var traveltime = distance / (velocity.x / 2);
         cameraController.StartCameraPan(traveltime);

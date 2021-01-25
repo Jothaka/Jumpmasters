@@ -5,7 +5,7 @@ public class UIController : MonoBehaviour
     [SerializeField]
     private AngleView angleView;
     [SerializeField]
-    private PowerView powerView;
+    private FillableUIView powerView;
 
     public void OnAimAngleChanged(float angle)
     {
@@ -16,7 +16,7 @@ public class UIController : MonoBehaviour
     public void OnPowerLevelChanged(float powerLevel)
     {
         powerView.Show();
-        powerView.SetPowerLevel(powerLevel);
+        powerView.SetFillAmount(powerLevel);
     }
 
     public void OnAimingFinished(float angle, float powerLvl)
