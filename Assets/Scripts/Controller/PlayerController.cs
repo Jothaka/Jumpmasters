@@ -31,8 +31,11 @@
 
     public void OnHit()
     {
-        currentHealth -= playerModel.DamageReceived;
-        float healthPercentage = (float)currentHealth / (float)playerModel.MaxHealth;
-        playerModel.EntityHealthbar.SetTargetFillAmount(healthPercentage);
+        if (currentbehaviour.ReceiveDamageOnHit())
+        {
+            currentHealth -= playerModel.DamageReceived;
+            float healthPercentage = (float)currentHealth / (float)playerModel.MaxHealth;
+            playerModel.EntityHealthbar.SetTargetFillAmount(healthPercentage);
+        }
     }
 }

@@ -11,6 +11,8 @@ public class JumpBehaviour : IPlayerBehaviour
     private float jumpRange;
     private float jumpMinforce;
 
+    private bool jumpIsComplete = false;
+
     private IPlayerBehaviour nextBehaviour;
 
     public JumpBehaviour(EntityModel entityModel, float maxForce, float minForce)
@@ -24,8 +26,13 @@ public class JumpBehaviour : IPlayerBehaviour
     public IPlayerBehaviour UpdateBehaviour(IInputComponent input)
     {
         bool playerAscending = rigidbody.velocity.y >= 0;
-
         model.EntityView.SetAnimatorAscendingParameter(playerAscending);
+
+        if (jumpIsComplete)
+        {
+            jumpIsComplete = false;
+            return nextBehaviour;
+        }
 
         return this;
     }
@@ -38,6 +45,11 @@ public class JumpBehaviour : IPlayerBehaviour
     public IPlayerBehaviour GetNextBehaviour()
     {
         return nextBehaviour;
+    }
+
+    public bool ReceiveDamageOnHit()
+    {
+        return false;
     }
 
     public void OnAimingFinished(float angle, float powerLvl)
@@ -72,5 +84,7 @@ public class JumpBehaviour : IPlayerBehaviour
 
         if (obj.gameObject.CompareTag(model.EntityEnemyTag))
             HitEnemy?.Invoke();
+
+        jumpIsComplete = true;
     }
 }

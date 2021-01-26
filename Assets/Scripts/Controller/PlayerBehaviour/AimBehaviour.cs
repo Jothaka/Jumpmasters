@@ -52,6 +52,11 @@ public class AimBehaviour : IPlayerBehaviour
         return nextBehaviour;
     }
 
+    public bool ReceiveDamageOnHit()
+    {
+        return false;
+    }
+
     private void UpdateAimAngle(IInputComponent input)
     {
         Vector3 inputPosition = input.GetInputPosition();

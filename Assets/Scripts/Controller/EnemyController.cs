@@ -7,16 +7,30 @@ public class EnemyController
 
     private int currentHealth;
 
-    public EnemyController(EntityModel entityModel)
+    private IPlayerBehaviour enemyBehaviour;
+
+    private IInputComponent fakeInput;
+
+    public EnemyController(EntityModel entityModel, IPlayerBehaviour enemyBehaviour)
     {
         model = entityModel;
         currentHealth = model.MaxHealth;
+        this.enemyBehaviour = enemyBehaviour;
+        fakeInput = new NoInputComponent();
+    }
+
+    public void Update()
+    {
+        enemyBehaviour = enemyBehaviour.UpdateBehaviour(fakeInput);
     }
 
     public void OnHit()
     {
-        currentHealth -= model.DamageReceived;
-        float healthPercentage = (float)currentHealth / (float)model.MaxHealth;
-        model.EntityHealthbar.SetTargetFillAmount(healthPercentage);
+        if (enemyBehaviour.ReceiveDamageOnHit())
+        {
+            currentHealth -= model.DamageReceived;
+            float healthPercentage = (float)currentHealth / (float)model.MaxHealth;
+            model.EntityHealthbar.SetTargetFillAmount(healthPercentage);
+        }
     }
 }

@@ -4,6 +4,9 @@ using System.Collections;
 
 public class GameController : MonoBehaviour
 {
+    private event Action PlayerTurnStart;
+    private event Action EnemyTurnStart;
+
     [Header("Controller references")]
     [SerializeField]
     private CameraController cameraController;
@@ -25,6 +28,8 @@ public class GameController : MonoBehaviour
     [Header("Enemy references")]
     [SerializeField]
     private EntityModel enemyModel;
+    [SerializeField]
+    private AISettings aiSettings;
 
     [Header("Settings")]
     [SerializeField]
@@ -37,23 +42,18 @@ public class GameController : MonoBehaviour
 
     void Start()
     {
-        cameraController.StartCameraPan();
+        cameraController.StartCameraPanPlayerToEnemy();
         cameraController.CameraMovedToPlayer += CreatePlayer;
-        enemy = new EnemyController(enemyModel);
+        var enemyBehavior = CreateEnemyBehaviours();
+        enemy = new EnemyController(enemyModel, enemyBehavior);
     }
 
     void Update()
     {
         if (player != null)
             player.Update();
-    }
-
-    public void Debug_ResetPlayer()
-    {
-        var playerTransform = playerModel.transform;
-        playerTransform.position = playerStartingPosition.position;
-        playerTransform.rotation = playerStartingPosition.rotation;
-        player.ForceNextBehaviour();
+        if (enemy != null)
+            enemy.Update();
     }
 
     private void CreatePlayer()
@@ -66,7 +66,7 @@ public class GameController : MonoBehaviour
         {
             case RuntimePlatform.WindowsPlayer:
             case RuntimePlatform.WindowsEditor:
-                player = new PlayerController(new MouseInputComponent(), startBehaviour , playerModel);
+                player = new PlayerController(new MouseInputComponent(), startBehaviour, playerModel);
                 break;
             case RuntimePlatform.Android:
                 player = new PlayerController(new TouchInputComponent(), startBehaviour, playerModel);
@@ -86,26 +86,100 @@ public class GameController : MonoBehaviour
         JumpBehaviour jumpBehaviour = new JumpBehaviour(playerModel, jumpMaxforce, jumpMinforce);
         aimBehaviour.AimingFinished += jumpBehaviour.OnAimingFinished;
         aimBehaviour.SetNextBehaviour(jumpBehaviour);
-        jumpBehaviour.SetNextBehaviour(aimBehaviour);
-        jumpBehaviour.Jumped += OnJumped;
-        jumpBehaviour.HitEnemy += enemy.OnHit;
+        jumpBehaviour.Jumped += OnPlayerJumped;
+        jumpBehaviour.HitEnemy += OnEnemyHit;
+
+        WaitBehaviour waitBehaviour = new WaitBehaviour();
+        waitBehaviour.SetNextBehaviour(aimBehaviour);
+        jumpBehaviour.SetNextBehaviour(waitBehaviour);
+        PlayerTurnStart += waitBehaviour.StopWaiting;
 
         return aimBehaviour;
     }
 
-    private void OnJumped()
+    private IPlayerBehaviour CreateEnemyBehaviours()
+    {
+        WaitBehaviour waitBehaviour = new WaitBehaviour();
+        EnemyTurnStart += waitBehaviour.StopWaiting;
+
+        AIAimBehaviour aimBehaviour = new AIAimBehaviour(aiSettings);
+        waitBehaviour.SetNextBehaviour(aimBehaviour);
+
+        JumpBehaviour jumpBehaviour = new JumpBehaviour(enemyModel, jumpMaxforce, jumpMinforce);
+        aimBehaviour.SetNextBehaviour(jumpBehaviour);
+        aimBehaviour.AIAimingFinished += jumpBehaviour.OnAimingFinished;
+        jumpBehaviour.SetNextBehaviour(waitBehaviour);
+        jumpBehaviour.Jumped += OnEnemyJumped;
+        jumpBehaviour.HitEnemy += OnPlayerHit;
+
+        return waitBehaviour;
+    }
+
+    private void ResetEntityPosition(Transform entityTransform, Transform targetPosition)
+    {
+        entityTransform.position = targetPosition.position;
+        entityTransform.rotation = targetPosition.rotation;
+    }
+
+    #region Method-Callbacks
+    private void StartAITurn()
+    {
+        cameraController.MoveToEnemy();
+        ResetEntityPosition(playerModel.transform, playerStartingPosition);
+        EnemyTurnStart?.Invoke();
+    }
+
+    private void StartPlayerTurn()
+    {
+        cameraController.MoveToPlayer();
+        ResetEntityPosition(enemyModel.transform, enemyStartingPosition);
+        PlayerTurnStart?.Invoke();
+    }
+
+    private void OnPlayerJumped()
     {
         StartCoroutine(FollowPlayerJump());
     }
+
+    private void OnEnemyHit()
+    {
+        enemy.OnHit();
+    }
+
+    private void OnEnemyJumped()
+    {
+        StartCoroutine(FollowEnemyJump());
+    }
+
+    private void OnPlayerHit()
+    {
+        player.OnHit();
+    }
+    #endregion
 
     private IEnumerator FollowPlayerJump()
     {
         //need to wait for the next physics frame to get the correct velocity
         yield return new WaitForFixedUpdate();
-
-        var velocity = playerModel.RigidBody.velocity;
-        var distance = enemyStartingPosition.position.x - playerStartingPosition.position.x;
-        var traveltime = distance / (velocity.x / 2);
-        cameraController.StartCameraPan(traveltime);
+        float traveltime = GetCameraTravelTime(playerModel, enemyStartingPosition, playerStartingPosition);
+        cameraController.StartCameraPanPlayerToEnemy(traveltime);
+        cameraController.CameraMovedToPlayer += StartAITurn;
     }
+
+    private IEnumerator FollowEnemyJump()
+    {
+        //need to wait for the next physics frame to get the correct velocity
+        yield return new WaitForFixedUpdate();
+        float travelTime = GetCameraTravelTime(enemyModel, playerStartingPosition, enemyStartingPosition);
+        cameraController.StartCameraPanEnemyToPlayer(travelTime);
+        cameraController.CameraMovedToEnemy += StartPlayerTurn;
+    }
+
+    private static float GetCameraTravelTime(EntityModel model, Transform targetPosition, Transform originPosition)
+    {
+        var velocity = model.RigidBody.velocity;
+        var distance = targetPosition.position.x - originPosition.position.x;
+        var traveltime = distance / (velocity.x / 2);
+        return traveltime;
+    }    
 }
