@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class EnemyController
 {
+    public event Action Killed;
+
     private EntityModel model;
 
     private int currentHealth;
@@ -21,7 +23,8 @@ public class EnemyController
 
     public void Update()
     {
-        enemyBehaviour = enemyBehaviour.UpdateBehaviour(fakeInput);
+        if (currentHealth > 0)
+            enemyBehaviour = enemyBehaviour.UpdateBehaviour(fakeInput);
     }
 
     public void OnHit()
@@ -31,6 +34,9 @@ public class EnemyController
             currentHealth -= model.DamageReceived;
             float healthPercentage = (float)currentHealth / (float)model.MaxHealth;
             model.EntityHealthbar.SetTargetFillAmount(healthPercentage);
+
+            if (currentHealth <= 0)
+                Killed?.Invoke();
         }
     }
 }

@@ -44,10 +44,9 @@ public class AIAimBehaviour : IPlayerBehaviour
         return this;
     }
 
-    //TODO: add a more refined decision regarding angle/pwrlvl
     private void SetJumpParameters()
     {
-        var powerLvl = Random.value;
+        var powerLvl = Random.Range(settings.MinimalPower, 1.0f);
         
         var newAngle = Random.Range(settings.InitialMinAngle, settings.InitialMaxAngle);
         AIAimingFinished?.Invoke(newAngle, powerLvl);

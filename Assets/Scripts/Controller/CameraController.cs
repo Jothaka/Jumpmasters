@@ -35,7 +35,7 @@ public class CameraController : MonoBehaviour
         MoveToEnemy(cameraDefaultMoveDuration);
     }
 
-    private void MoveToEnemy(float duration)
+    public void MoveToEnemy(float duration)
     {
         var enemyTween = cameraView.MoveToEnemyRestingPoint(duration);
         enemyTween.onComplete += OnEnemyMoveTweenComplete;
@@ -46,7 +46,7 @@ public class CameraController : MonoBehaviour
         MoveToPlayer(cameraDefaultMoveDuration);
     }
 
-    private void MoveToPlayer(float duration)
+    public void MoveToPlayer(float duration)
     {
         var playerTween = cameraView.MoveToPlayerRestingPoint(duration);
         playerTween.onComplete += OnPlayerMoveTweenComplete;

@@ -46,6 +46,7 @@ public class GameController : MonoBehaviour
         cameraController.CameraMovedToPlayer += CreatePlayer;
         var enemyBehavior = CreateEnemyBehaviours();
         enemy = new EnemyController(enemyModel, enemyBehavior);
+        enemy.Killed += OnEnemyKilled;
     }
 
     void Update()
@@ -54,6 +55,12 @@ public class GameController : MonoBehaviour
             player.Update();
         if (enemy != null)
             enemy.Update();
+    }
+
+    //invoked by GameOverView Button press
+    public void RestartGame()
+    {
+        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
     }
 
     private void CreatePlayer()
@@ -74,6 +81,8 @@ public class GameController : MonoBehaviour
             default:
                 throw new NotImplementedException(Application.platform.ToString());
         }
+
+        player.Killed += OnPlayerKilled;
     }
 
     private IPlayerBehaviour CreatePlayerBehaviours()
@@ -124,14 +133,12 @@ public class GameController : MonoBehaviour
     #region Method-Callbacks
     private void StartAITurn()
     {
-        cameraController.MoveToEnemy();
         ResetEntityPosition(playerModel.transform, playerStartingPosition);
         EnemyTurnStart?.Invoke();
     }
 
     private void StartPlayerTurn()
     {
-        cameraController.MoveToPlayer();
         ResetEntityPosition(enemyModel.transform, enemyStartingPosition);
         PlayerTurnStart?.Invoke();
     }
@@ -155,6 +162,15 @@ public class GameController : MonoBehaviour
     {
         player.OnHit();
     }
+
+    private void OnPlayerKilled()
+    {
+        uiController.ShowPlayerLostView();
+    }
+    private void OnEnemyKilled()
+    {
+        uiController.ShowPlayerWonView();
+    }
     #endregion
 
     private IEnumerator FollowPlayerJump()
@@ -162,8 +178,8 @@ public class GameController : MonoBehaviour
         //need to wait for the next physics frame to get the correct velocity
         yield return new WaitForFixedUpdate();
         float traveltime = GetCameraTravelTime(playerModel, enemyStartingPosition, playerStartingPosition);
-        cameraController.StartCameraPanPlayerToEnemy(traveltime);
-        cameraController.CameraMovedToPlayer += StartAITurn;
+        cameraController.MoveToEnemy(traveltime);
+        cameraController.CameraMovedToEnemy += StartAITurn;
     }
 
     private IEnumerator FollowEnemyJump()
@@ -171,8 +187,8 @@ public class GameController : MonoBehaviour
         //need to wait for the next physics frame to get the correct velocity
         yield return new WaitForFixedUpdate();
         float travelTime = GetCameraTravelTime(enemyModel, playerStartingPosition, enemyStartingPosition);
-        cameraController.StartCameraPanEnemyToPlayer(travelTime);
-        cameraController.CameraMovedToEnemy += StartPlayerTurn;
+        cameraController.MoveToPlayer(travelTime);
+        cameraController.CameraMovedToPlayer += StartPlayerTurn;
     }
 
     private static float GetCameraTravelTime(EntityModel model, Transform targetPosition, Transform originPosition)

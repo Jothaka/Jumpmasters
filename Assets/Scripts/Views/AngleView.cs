@@ -8,6 +8,6 @@ public class AngleView : UIView
 
    public void SetDisplayedAngle(float angle)
     {
-        angleText.text = string.Format("{0,2}°", angle);
+        angleText.text = string.Format("{0:0.00}°", angle);
     }
 }

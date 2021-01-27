@@ -1,6 +1,11 @@
-﻿public class PlayerController
+﻿using System;
+
+public class PlayerController
 {
     private readonly IInputComponent input;
+
+    public event Action Killed;
+
     private IPlayerBehaviour currentbehaviour;
     private EntityModel playerModel;
     private int currentHealth;
@@ -15,7 +20,8 @@
 
     public void Update()
     {
-        currentbehaviour = currentbehaviour.UpdateBehaviour(input);
+        if (currentHealth > 0)
+            currentbehaviour = currentbehaviour.UpdateBehaviour(input);
     }
 
     public void SetBehaviour(IPlayerBehaviour newBehaviour)
@@ -36,6 +42,10 @@
             currentHealth -= playerModel.DamageReceived;
             float healthPercentage = (float)currentHealth / (float)playerModel.MaxHealth;
             playerModel.EntityHealthbar.SetTargetFillAmount(healthPercentage);
+            playerModel.EntityView.SetAnimatorHitTrigger();
+
+            if (currentHealth <= 0)
+                Killed?.Invoke();
         }
     }
 }
